@@ -37,8 +37,11 @@ public class main {
 	Interpreter interpreter = new Interpreter();
 	Double result=interpreter.visit(parseTree);
 	System.out.println("The result is: "+result);
-	
 
+	// Construct an abstract syntax three
+	ASTmaker asTmaker = new ASTmaker();
+	Expr re=asTmaker.visit(parseTree);
+	System.out.println("my new result is: "+ re.eval());
 	
     }
 }
@@ -85,11 +88,53 @@ class Interpreter extends AbstractParseTreeVisitor<Double> implements simpleCalc
 
 
 
-
-
-
-
 //abstract syntax three
+class ASTmaker extends AbstractParseTreeVisitor<Expr> implements simpleCalcVisitor<Expr> {
+
+	@Override
+	public Expr visitStart(simpleCalcParser.StartContext ctx) {
+		return visit(ctx.e);
+	}
+
+	@Override
+	public Expr visitParenthesis(simpleCalcParser.ParenthesisContext ctx) {
+		return visit(ctx.e);
+	}
+
+	@Override
+	public Expr visitMultiplication(simpleCalcParser.MultiplicationContext ctx) {
+		if (ctx.op.getText().equals("*"))
+			return new Multiplication(visit(ctx.e1),visit(ctx.e2));
+
+		else
+			return new Division(visit(ctx.e1),visit(ctx.e2));
+	}
+
+	@Override
+	public Expr visitAddition(simpleCalcParser.AdditionContext ctx) {
+		if (ctx.op.getText().equals("+"))
+			return new Addition(visit(ctx.e1),visit(ctx.e2));
+
+		else
+			return new Subtraction(visit(ctx.e1),visit(ctx.e2));
+	}
+
+	@Override
+	public Expr visitConstant(simpleCalcParser.ConstantContext ctx) {
+		return new Const(Double.parseDouble(ctx.c.getText()));
+	}
+
+	@Override
+	public Expr visitMinus(simpleCalcParser.MinusContext ctx) {
+		if (ctx.op.getText().equals("+"))
+			return visit(ctx.e);
+		else
+			return new Subtraction(new Const(Double.valueOf(0)),visit(ctx.e));
+	}
+}
+
+
+
 abstract class Expr{
 	abstract public Double eval();
 };
